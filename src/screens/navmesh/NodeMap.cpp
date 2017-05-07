@@ -4,11 +4,10 @@ using namespace nm;
 
 NodeMap::NodeMap(){
 	Node n;
-	
-	unsigned int size_x = 248/10, size_y = 140/10;
+	unsigned int size_x = 248/5, size_y = 140/5;
 	unsigned int dotsx[size_x][size_y];
 	unsigned int dotsy[size_x][size_y];
-	unsigned int size = 5*10;
+	unsigned int size = 5*5;
 	for(unsigned int i=0; i<size_x; i++){
 		for(unsigned int j=0; j<size_y; j++){
 			dotsx[i][j] = i*size + (rand()%21+10);
@@ -78,6 +77,134 @@ void makeSquere(sf::VertexArray& vert, int x, int y, int size){
 	vert.append(v);
 }
 
+void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
+	unsigned int size = nodes.size();
+	//std::cin.ignore();
+	//get shortest path
+	unsigned int start_node = 0, end_node = nodes.size()-1;
+	std::vector<unsigned int> path = Astar::run(nodes, start_node, end_node);
+	
+	//get left and right points of the path
+	size = path.size();
+	std::vector<int> left_point_x, left_point_y;
+	std::vector<int> right_point_x, right_point_y;
+	unsigned int left_point_size = 0, right_point_size = 0;
+	for(unsigned int i=0; i<size-1; i++){
+		if(i != size){
+			int lx, ly, rx, ry;
+			nodes[path[i]].getLR(lx, ly, rx, ry, path[i+1]);
+			//if point isnt the same as last one add it to points
+			if (left_point_size == 0 || (left_point_x[left_point_size-1] != lx || left_point_y[left_point_size-1] != ly)){
+				left_point_x.push_back(lx); left_point_y.push_back(ly);
+				left_point_size++;
+			}
+			if (right_point_size == 0 || (right_point_x[right_point_size-1] != rx || right_point_y[right_point_size-1] != ry)){
+				right_point_x.push_back(rx); right_point_y.push_back(ry);
+				right_point_size++;
+			}
+		}
+	}
+	
+	//smooth the path-------
+	//create path and input starting location
+	path_x.push_back(0); path_y.push_back(0);
+	nodes[start_node].getCenter(path_x[0], path_y[0]);
+	
+	//create and calculate left and right angle
+	float left_angle, right_angle;
+	unsigned int points_size = left_point_x.size(), path_size = path_x.size();
+	if (right_point_x.size() < points_size) points_size = right_point_x.size();
+	left_angle = atan2(path_y[path_size-1] - left_point_y[0], left_point_x[0] - path_x[path_size-1]);
+	right_angle = atan2(path_y[path_size-1] - right_point_y[0], right_point_x[0] - path_x[path_size-1]);
+	float diff = left_angle - right_angle;
+	while(diff < -atan(1)*4){
+		diff += atan(1)*8;
+	}
+	
+	//smooth out the path
+	unsigned int left_i = 1, right_i = 1;
+	unsigned int last_left_i = left_i, last_right_i = right_i;
+	float new_diff = 0;
+	//move left and right
+	//if move makes angle wider, keep moving in that way, just stop changing last valid point
+	//if angles intracept, move path to the last vaild point of the oposite side
+	float min_left_angle = left_angle;
+	float min_right_angle = right_angle;
+	for(unsigned int i=1; i<points_size; i++){
+		//calculate left angle
+		left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
+		new_diff = left_angle - min_right_angle;
+		while(new_diff < -atan(1)*4){
+			new_diff += atan(1)*8;
+			
+		}
+		//if lines intracept
+		if (new_diff < 0){
+			left_i++;
+			path_x.push_back(right_point_x[last_right_i]);
+			path_y.push_back(right_point_y[last_right_i]);
+			path_size++;
+			diff = 0;
+			left_i = last_right_i+1;
+			right_i = last_right_i+1;
+			last_left_i = left_i;
+			last_right_i = right_i;
+			i = left_i;
+			min_left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
+			min_right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+			diff = min_left_angle - min_right_angle;
+			while(diff < -atan(1)*4){
+				diff += atan(1)*8;
+			}
+		//if difference got smaller
+		} else if(new_diff < diff){
+			min_left_angle = left_angle;
+			last_left_i = left_i;
+			diff = new_diff;
+		}
+		left_i++;
+		//std::cin.ignore();
+		
+		//calculate right angle
+		right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+		new_diff = min_left_angle - right_angle;
+		while(new_diff < -atan(1)*4){
+			new_diff += atan(1)*8;
+		}
+		//if lines intracept
+		if (new_diff < 0){
+			right_i++;
+			
+			path_x.push_back(left_point_x[last_left_i]);
+			path_y.push_back(left_point_y[last_left_i]);
+			path_size++;
+			diff = 0;
+			left_i = last_left_i+1;
+			right_i = last_left_i+1;
+			last_left_i = left_i;
+			last_right_i = right_i;
+			i = left_i;
+			min_left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
+			min_right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+			diff = min_left_angle - min_right_angle;
+			while(diff < -atan(1)*4){
+				diff += atan(1)*8;
+			}
+		//if difference got smaller
+		} else if(new_diff < diff){
+			min_right_angle = right_angle;
+			last_right_i = right_i;
+			diff = new_diff;
+		}
+		right_i++;
+	}
+	//add end to the path
+	path_x.push_back(0);
+	path_y.push_back(0);
+	nodes[end_node].getCenter(path_x[path_x.size()-1], path_y[path_x.size()-1]);
+	path_size++;
+}
+
 void NodeMap::draw(sf::RenderWindow &window){
 	sf::VertexArray vert(sf::LinesStrip);
 	unsigned int size = nodes.size();
@@ -87,8 +214,11 @@ void NodeMap::draw(sf::RenderWindow &window){
 	window.draw(vert);
 	window.display();
 	//std::cin.ignore();
-	std::vector<unsigned int> path = Astar::run(nodes, nodes.size()-1, 0, window);
+	//get shortest path
+	unsigned int start_node = 0, end_node = nodes.size()-1;
+	std::vector<unsigned int> path = Astar::run(nodes, start_node, end_node);
 	
+	//get left and right points of the path
 	int cx, cy;
 	nodes[path[0]].getCenter(cx, cy);
 	vert.append(sf::Vector2f(cx, cy));
@@ -98,7 +228,7 @@ void NodeMap::draw(sf::RenderWindow &window){
 	std::vector<int> left_point_x, left_point_y;
 	std::vector<int> right_point_x, right_point_y;
 	unsigned int left_point_size = 0, right_point_size = 0;
-	for(unsigned int i=0; i<size; i++){
+	for(unsigned int i=0; i<size-1; i++){
 		int cx, cy;
 		nodes[path[i]].getCenter(cx, cy);
 		//std::cout << path[i] << std::endl;
@@ -137,7 +267,7 @@ void NodeMap::draw(sf::RenderWindow &window){
 	//create path and input starting location
 	std::vector<int> path_x, path_y;
 	path_x.push_back(0); path_y.push_back(0);
-	nodes[nodes.size()-1].getCenter(path_x[0], path_y[0]);
+	nodes[start_node].getCenter(path_x[0], path_y[0]);
 	//draw start of the path
 	vert.append(sf::Vector2f(path_x[0], path_y[0]));
 	vert[vert.getVertexCount()-1].color = sf::Color::Transparent;
@@ -348,6 +478,13 @@ void NodeMap::draw(sf::RenderWindow &window){
 		window.display();
 		//std::cin.ignore();
 	}
+	//add end to the path
+	std::cout << "Adding last node" << std::endl;
+	path_x.push_back(0);
+	path_y.push_back(0);
+	nodes[end_node].getCenter(path_x[path_x.size()-1], path_y[path_x.size()-1]);
+	path_size++;
+	std::cout << "drawing path" << std::endl;
 	//draw path
 	sf::VertexArray vpath(sf::LinesStrip);
 	for(unsigned int i=0; i<path_x.size(); i++){
@@ -355,10 +492,12 @@ void NodeMap::draw(sf::RenderWindow &window){
 		v.color = sf::Color::White;
 		vpath.append(v);
 	}
-	//add end to vertexarray
-	nodes[path[size-1]].getCenter(cx, cy);
-	vpath.append(sf::Vector2f(cx, cy));
-	vpath[vert.getVertexCount()-1].color = sf::Color::White;
+	// std::cout << "add end vertex" << std::endl;
+	// //add end to vertexarray
+	// nodes[path[size-1]].getCenter(cx, cy);
+	// vpath.append(sf::Vector2f(cx, cy));
+	// vpath[vert.getVertexCount()-1].color = sf::Color::White;
+	std::cout << "draw everything" << std::endl;
 	window.clear(sf::Color::Black);
 	window.draw(vert);
 	window.draw(point);

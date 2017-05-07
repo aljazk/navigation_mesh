@@ -4,11 +4,12 @@ using namespace nm;
 
 Node::Node(){
 	taken = false;
+	debug_color = sf::Color(255,0,0,50);
+	debug_color_links = sf::Color(0,255,0,25);
 }
 
-Node::Node(const std::vector<int> &x, const std::vector<int> &y){
+Node::Node(const std::vector<int> &x, const std::vector<int> &y) : Node(){
 	set(x, y);
-	taken = false;
 }
 
 void Node::clear(){
@@ -71,10 +72,10 @@ void Node::getVert(sf::VertexArray &vert){
 	unsigned int size = x.size();
 	for(unsigned int i=0; i<size; i++){
 		vert.append(sf::Vector2f(x[i], y[i]));
-		vert[vert.getVertexCount()-1].color = sf::Color::Red;
+		vert[vert.getVertexCount()-1].color = debug_color;
 	}
 	vert.append(sf::Vector2f(x[0], y[0]));
-	vert[vert.getVertexCount()-1].color = sf::Color::Red;
+	vert[vert.getVertexCount()-1].color = debug_color;
 	vert.append(sf::Vector2f(x[0], y[0]));
 	vert[vert.getVertexCount()-1].color = sf::Color::Transparent;
 }
@@ -85,10 +86,10 @@ void Node::getVertWithLinks(sf::VertexArray &vert){
 	unsigned int size = x.size();
 	for(unsigned int i=0; i<size; i++){
 		vert.append(sf::Vector2f(x[i], y[i]));
-		vert[vert.getVertexCount()-1].color = sf::Color::Red;
+		vert[vert.getVertexCount()-1].color = debug_color;
 	}
 	vert.append(sf::Vector2f(x[0], y[0]));
-	vert[vert.getVertexCount()-1].color = sf::Color::Red;
+	vert[vert.getVertexCount()-1].color = debug_color;
 	vert.append(sf::Vector2f(x[0], y[0]));
 	vert[vert.getVertexCount()-1].color = sf::Color::Transparent;
 	int cx, cy;
@@ -98,9 +99,9 @@ void Node::getVertWithLinks(sf::VertexArray &vert){
 		vert.append(sf::Vector2f(cx, cy));
 		vert[vert.getVertexCount()-1].color = sf::Color::Transparent;
 		vert.append(sf::Vector2f(cx, cy));
-		vert[vert.getVertexCount()-1].color = sf::Color::Green;
+		vert[vert.getVertexCount()-1].color = debug_color_links;
 		vert.append(sf::Vector2f(nx[i], ny[i]));
-		vert[vert.getVertexCount()-1].color = sf::Color::Green;
+		vert[vert.getVertexCount()-1].color = debug_color_links;
 		vert.append(sf::Vector2f(nx[i], ny[i]));
 		vert[vert.getVertexCount()-1].color = sf::Color::Transparent;
 	}
@@ -184,7 +185,7 @@ void Node::getLR(int &lx, int &ly, int &rx, int &ry, const unsigned int next){
 			}
 		}
 	}
-	if (p1 == p2-1){//broken
+	if (p1 == p2-1){
 		lx = x[p1];
 		ly = y[p1];
 		rx = x[p2];

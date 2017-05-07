@@ -16,6 +16,7 @@ class Node{
 		std::vector<unsigned int> cost;
 		std::vector<int> nx;
 		std::vector<int> ny;
+		sf::Color debug_color, debug_color_links;
 	public:
 		bool taken;
 		Node();

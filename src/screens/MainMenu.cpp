@@ -30,6 +30,7 @@ void MainMenu::createGUI(){
 	gui.emplace<Button>(mbutton);
 }
 
+
 void MainMenu::run(sf::RenderWindow &window){
 	std::string action = "";
 	// start loop
@@ -52,8 +53,11 @@ void MainMenu::run(sf::RenderWindow &window){
             window.close();
 		}
 		
-		nm.draw(window);
-		std::cin.ignore();
+		std::vector<int> path_x;
+		std::vector<int> path_y;
+		//nm.draw(window);
+		nm.getPath(path_x, path_y);
+		nm::NodeMap::drawPath(path_x, path_y, window);
 		
 		//gui.draw(window);
 		// end the current frame
@@ -69,7 +73,6 @@ void MainMenu::run(sf::RenderWindow &window){
 
 		// draw stuff on window
         window.display();
-		std::cin.ignore();
         //wait();
     }
 }
