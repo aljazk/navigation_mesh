@@ -77,33 +77,33 @@ void makeSquere(sf::VertexArray& vert, int x, int y, int size){
 	vert.append(v);
 }
 
-void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
-	unsigned int size = nodes.size();
-	//std::cin.ignore();
-	//get shortest path
-	unsigned int start_node = 0, end_node = nodes.size()-1;
-	std::vector<unsigned int> path = Astar::run(nodes, start_node, end_node);
-	
-	//get left and right points of the path
-	size = path.size();
-	std::vector<int> left_point_x, left_point_y;
-	std::vector<int> right_point_x, right_point_y;
-	unsigned int left_point_size = 0, right_point_size = 0;
+void NodeMap::getLeftRight(std::vector<unsigned int> &path, std::vector<Point> &left_point, std::vector<Point> &right_point){
+	unsigned int size = path.size();
 	for(unsigned int i=0; i<size-1; i++){
 		if(i != size){
 			int lx, ly, rx, ry;
 			nodes[path[i]].getLR(lx, ly, rx, ry, path[i+1]);
 			//if point isnt the same as last one add it to points
-			if (left_point_size == 0 || (left_point_x[left_point_size-1] != lx || left_point_y[left_point_size-1] != ly)){
-				left_point_x.push_back(lx); left_point_y.push_back(ly);
-				left_point_size++;
+			if (left_point.empty() || (left_point.back().x != lx || left_point.back().y != ly)){
+				left_point.push_back(Point(lx, ly));
 			}
-			if (right_point_size == 0 || (right_point_x[right_point_size-1] != rx || right_point_y[right_point_size-1] != ry)){
-				right_point_x.push_back(rx); right_point_y.push_back(ry);
-				right_point_size++;
+			if (right_point.empty() || (right_point.back().x != rx || right_point.back().y != ry)){
+				right_point.push_back(Point(rx, ry));
 			}
 		}
 	}
+}
+
+void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
+	//get shortest path
+	unsigned int start_node = 0, end_node = nodes.size()-1;
+	std::vector<unsigned int> path = Astar::run(nodes, start_node, end_node);
+	
+	//get left and right points of the path
+	std::vector<Point> left_point;
+	std::vector<Point> right_point;
+	getLeftRight(path, left_point, right_point);
+	
 	
 	//smooth the path-------
 	//create path and input starting location
@@ -112,10 +112,10 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 	
 	//create and calculate left and right angle
 	float left_angle, right_angle;
-	unsigned int points_size = left_point_x.size(), path_size = path_x.size();
-	if (right_point_x.size() < points_size) points_size = right_point_x.size();
-	left_angle = atan2(path_y[path_size-1] - left_point_y[0], left_point_x[0] - path_x[path_size-1]);
-	right_angle = atan2(path_y[path_size-1] - right_point_y[0], right_point_x[0] - path_x[path_size-1]);
+	unsigned int points_size = left_point.size(), path_size = path_x.size();
+	if (right_point.size() < points_size) points_size = right_point.size();
+	left_angle = atan2(path_y[path_size-1] - left_point[0].y, left_point[0].x - path_x[path_size-1]);
+	right_angle = atan2(path_y[path_size-1] - right_point[0].y, right_point[0].x - path_x[path_size-1]);
 	float diff = left_angle - right_angle;
 	while(diff < -atan(1)*4){
 		diff += atan(1)*8;
@@ -132,7 +132,7 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 	float min_right_angle = right_angle;
 	for(unsigned int i=1; i<points_size; i++){
 		//calculate left angle
-		left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
+		left_angle = atan2(path_y[path_size-1] - left_point[left_i].y, left_point[left_i].x - path_x[path_size-1]);
 		new_diff = left_angle - min_right_angle;
 		while(new_diff < -atan(1)*4){
 			new_diff += atan(1)*8;
@@ -141,8 +141,8 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 		//if lines intracept
 		if (new_diff < 0){
 			left_i++;
-			path_x.push_back(right_point_x[last_right_i]);
-			path_y.push_back(right_point_y[last_right_i]);
+			path_x.push_back(right_point[last_right_i].x);
+			path_y.push_back(right_point[last_right_i].y);
 			path_size++;
 			diff = 0;
 			left_i = last_right_i+1;
@@ -150,8 +150,8 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 			last_left_i = left_i;
 			last_right_i = right_i;
 			i = left_i;
-			min_left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
-			min_right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+			min_left_angle = atan2(path_y[path_size-1] - left_point[left_i].y, left_point[left_i].x - path_x[path_size-1]);
+			min_right_angle = atan2(path_y[path_size-1] - right_point[right_i].y, right_point[right_i].x - path_x[path_size-1]);
 			diff = min_left_angle - min_right_angle;
 			while(diff < -atan(1)*4){
 				diff += atan(1)*8;
@@ -166,7 +166,7 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 		//std::cin.ignore();
 		
 		//calculate right angle
-		right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+		right_angle = atan2(path_y[path_size-1] - right_point[right_i].y, right_point[right_i].x - path_x[path_size-1]);
 		new_diff = min_left_angle - right_angle;
 		while(new_diff < -atan(1)*4){
 			new_diff += atan(1)*8;
@@ -175,8 +175,8 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 		if (new_diff < 0){
 			right_i++;
 			
-			path_x.push_back(left_point_x[last_left_i]);
-			path_y.push_back(left_point_y[last_left_i]);
+			path_x.push_back(left_point[last_left_i].x);
+			path_y.push_back(left_point[last_left_i].y);
 			path_size++;
 			diff = 0;
 			left_i = last_left_i+1;
@@ -184,8 +184,8 @@ void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 			last_left_i = left_i;
 			last_right_i = right_i;
 			i = left_i;
-			min_left_angle = atan2(path_y[path_size-1] - left_point_y[left_i], left_point_x[left_i] - path_x[path_size-1]);
-			min_right_angle = atan2(path_y[path_size-1] - right_point_y[right_i], right_point_x[right_i] - path_x[path_size-1]);
+			min_left_angle = atan2(path_y[path_size-1] - left_point[left_i].y, left_point[left_i].x - path_x[path_size-1]);
+			min_right_angle = atan2(path_y[path_size-1] - right_point[right_i].y, right_point[right_i].x - path_x[path_size-1]);
 			diff = min_left_angle - min_right_angle;
 			while(diff < -atan(1)*4){
 				diff += atan(1)*8;
@@ -287,7 +287,7 @@ void NodeMap::draw(sf::RenderWindow &window){
 	while(diff < -atan(1)*4){
 		diff += atan(1)*8;
 	}
-	// std::cout << "ly: " << path_y[path_size-1] - left_point_y[0] << " rx: " << path_x[path_size-1] - left_point_x[0] << std::endl;
+	// std::cout << "ly: " << path_y[path_size-1] - left_point_y[0] << " rx: " << path_x[path_size-1] - left_point[0].x << std::endl;
 	// std::cout << "start: " << left_angle << " " << right_angle << " diff: " << diff << std::endl;
 	
 	makeSquere(debug_vert, path_x[path_size-1], path_y[path_size-1], 10);
