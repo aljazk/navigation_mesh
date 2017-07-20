@@ -30,6 +30,7 @@ class Node{
 		void getVert(sf::VertexArray &);
 		void getVertWithLinks(sf::VertexArray &);
 		void getCenter(int &, int &);
+		unsigned int getSize();
 		unsigned int getH(Node &);
 		unsigned int getSmallesWeightNeighbor(Node &end_node);
 		unsigned int getNeighborCost(const unsigned int);

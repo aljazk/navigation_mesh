@@ -12,8 +12,6 @@ NodeMap::NodeMap(){
 		for(unsigned int j=0; j<size_y; j++){
 			dotsx[i][j] = i*size + (rand()%21+10);
 			dotsy[i][j] = j*size + (rand()%21+10);
-			//std::cout << i << " " << j << std::endl;
-			//std::cout << i*size << " " << j*size << std::endl;
 		}
 	}
 	for(unsigned int i=0; i<size_x-1; i++){
@@ -26,25 +24,119 @@ NodeMap::NodeMap(){
 			nodes.push_back(n);
 		}
 	}
-	
-	/*
-	for(unsigned int i=0; i<90; i++){
-		for(unsigned int j=0; j<60; j++){
-			if (i!=70 || j>50 || j<20){
-				if (j!=50 || i>70 || i<50){
-					n.clear();
-					unsigned int size = 10;
-					n.add(100+i*size, 100+j*size);
-					n.add(100+size+i*size, 100+j*size);
-					n.add(100+size+i*size, 100+size+j*size);
-					n.add(100+i*size, 100+size+j*size);
-					nodes.push_back(n);
+	findNeighbors();
+}
+
+unsigned int NodeMap::findMin(const Point *dots, const unsigned int size){
+	Point min(INT_MAX,INT_MAX);
+	unsigned int min_id = size;
+	for(unsigned int i=0; i<size; i++){
+		if(dots[i].x < min.x){
+			min = dots[i];
+			min_id = i;
+		} else if (dots[i].x == min.x && dots[i].y < min.y){
+			min = dots[i];
+			min_id = i;
+		}
+	}
+	return min_id;
+}
+
+unsigned int NodeMap::dist(const Point p1, const Point p2){
+	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
+}
+
+unsigned int NodeMap::findClose(const Point *dots, const unsigned int id, const unsigned int *conn, const unsigned int size){
+	unsigned int close_id = id;
+	unsigned int min_dist = INT_MAX;
+	for(unsigned int i=0; i<size; i++){
+		if(i != id){
+			unsigned int sdist = dist(dots[i], dots[id]);
+			if(sdist < min_dist && conn[i] < 2){
+				min_dist = sdist;
+				close_id = i;
+			}
+		}
+	}
+	return close_id;
+}
+
+bool includes(const std::vector<unsigned int> &id, const unsigned int d){
+	for(unsigned int i=0; i<id.size(); i++){
+		if(id[i] == d) return true;
+	}
+	return false;
+}
+
+unsigned int NodeMap::findClose(const Point *dots, const std::vector<unsigned int> &id, const unsigned int *conn, const unsigned int size){
+	unsigned int close_id = id[0];
+	unsigned int min_dist = INT_MAX;
+	for(unsigned int j=0; j<id.size(); j++){
+		for(unsigned int i=0; i<size; i++){
+			if(!includes(id, i)){
+				unsigned int sdist = dist(dots[i], dots[id[j]]);
+				if(sdist < min_dist && conn[i] < 1){
+					min_dist = sdist;
+					close_id = i;
 				}
 			}
 		}
 	}
-	*/
-	findNeighbors();
+	return close_id;
+}
+
+void NodeMap::connect(const Point *dots, const unsigned int size){
+	unsigned int conn[size];
+	for(unsigned int i=0; i<size; i++) conn[i] = 0;
+	std::vector<Point> doubles;
+	unsigned int id = findMin(dots, size);
+	std::vector<unsigned int> ids;
+	ids.push_back(id);
+	Node n;
+	n.add(dots[id].x, dots[id].y);
+	conn[id]++;
+	std::cout << "start" << std::endl;
+	//not even close
+	while(true){
+		id = findClose(dots, ids, conn, size);
+		if(id == ids[0]){
+			break;
+		}
+		std::cout << id << std::endl;
+		ids.push_back(id);
+		n.add(dots[id].x, dots[id].y);
+		conn[id]++;
+		if (ids.size() == 3){
+			nodes.push_back(n);
+			n.clear();
+			n.add(dots[id].x, dots[id].y);
+			conn[id]++;
+			doubles.push_back(dots[id]);
+			ids.erase(ids.begin(), ids.end()-1);
+		}
+	}
+}
+
+NodeMap::NodeMap(sf::RenderWindow &window){
+	sf::VertexArray vect(sf::Points);
+	sf::Vertex v;
+	v.color = sf::Color::White;
+	unsigned int size = 10;
+	Point dots[size];
+	for(unsigned int i=0; i<size; i++){
+		dots[i].x = rand()%window.getSize().x;
+		dots[i].y = rand()%window.getSize().y;
+		v.position.x = dots[i].x;
+		v.position.y = dots[i].y;
+		vect.append(v);
+	}
+	unsigned int min_id = findMin(dots, size);
+	vect[min_id].color = sf::Color::Red;
+	window.draw(vect);
+	connect(dots, size);
+	drawNodes(window);
+	window.display();
+	std::cin.ignore();
 }
 
 void NodeMap::findNeighbors(){
@@ -93,6 +185,7 @@ void NodeMap::getLeftRight(std::vector<unsigned int> &path, std::vector<Point> &
 		}
 	}
 }
+
 
 void NodeMap::getPath(std::vector<int> &path_x, std::vector<int> &path_y){
 	//get shortest path
@@ -505,4 +598,22 @@ void NodeMap::draw(sf::RenderWindow &window){
 	window.display();
 	std::cout << "Done" << std::endl;
 	std::cin.ignore();
+}
+
+void NodeMap::drawNodes(sf::RenderWindow &window){
+	sf::VertexArray vert(sf::LinesStrip);
+	for(unsigned int i=0; i<nodes.size(); i++){
+		nodes[i].getVert(vert);
+	}
+	window.draw(vert);
+}
+
+void drawPath(const std::vector<int> &path_x, const std::vector<int> &path_y, sf::RenderWindow &window){
+	sf::VertexArray vpath(sf::LinesStrip);
+	for(unsigned int i=0; i<path_x.size(); i++){
+		sf::Vertex v(sf::Vector2f(path_x[i], path_y[i]));
+		v.color = sf::Color(255,255,0);
+		vpath.append(v);
+	}
+	window.draw(vpath);
 }

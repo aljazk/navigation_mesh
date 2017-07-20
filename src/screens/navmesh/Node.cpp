@@ -118,6 +118,10 @@ void Node::getCenter(int &x, int &y){
 	y = fy / size;
 }
 
+unsigned int Node::getSize(){
+	return x.size();
+}
+
 unsigned int Node::getH(Node &n){
 	int cx, cy;
 	int tcx, tcy;

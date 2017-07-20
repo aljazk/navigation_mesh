@@ -34,7 +34,7 @@ void MainMenu::createGUI(){
 void MainMenu::run(sf::RenderWindow &window){
 	std::string action = "";
 	// start loop
-	nm::NodeMap nm;
+	nm::NodeMap nm(window);
     while (window.isOpen()){
         // check all the window's events that were triggered since the last iteration of the loop
         sf::Event event;
@@ -56,8 +56,8 @@ void MainMenu::run(sf::RenderWindow &window){
 		std::vector<int> path_x;
 		std::vector<int> path_y;
 		//nm.draw(window);
-		nm.getPath(path_x, path_y);
-		nm::NodeMap::drawPath(path_x, path_y, window);
+		//nm.getPath(path_x, path_y);
+		//nm::NodeMap::drawPath(path_x, path_y, window);
 		
 		//gui.draw(window);
 		// end the current frame

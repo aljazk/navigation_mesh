@@ -23,21 +23,20 @@ class NodeMap{
 			}
 		};
 		std::vector<Node> nodes;
+		unsigned int findMin(const Point *, const unsigned int);
+		unsigned int dist(const Point, const Point);
+		unsigned int findClose(const Point *, const unsigned int, const unsigned int*, const unsigned int);
+		unsigned int findClose(const Point *, const std::vector<unsigned int> &, const unsigned int*, const unsigned int);
+		void connect(const Point *, const unsigned int);
 		void findNeighbors();
 		void getLeftRight(std::vector<unsigned int> &, std::vector<Point> &, std::vector<Point> &);
 	public:
 		NodeMap();
+		NodeMap(sf::RenderWindow &);
 		void getPath(std::vector<int> &, std::vector<int> &);
 		void draw(sf::RenderWindow &);
-		static void drawPath(const std::vector<int> path_x, const std::vector<int> path_y, sf::RenderWindow &window){
-			sf::VertexArray vpath(sf::LinesStrip);
-			for(unsigned int i=0; i<path_x.size(); i++){
-				sf::Vertex v(sf::Vector2f(path_x[i], path_y[i]));
-				v.color = sf::Color(255,255,0);
-				vpath.append(v);
-			}
-			window.draw(vpath);
-		}
+		void drawNodes(sf::RenderWindow &);
+		static void drawPath(const std::vector<int> &, const std::vector<int> &, sf::RenderWindow &);
 };
 
 
