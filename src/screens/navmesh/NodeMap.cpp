@@ -27,20 +27,6 @@ NodeMap::NodeMap(){
 	findNeighbors();
 }
 
-unsigned int NodeMap::findMin(const Point *dots, const unsigned int size){
-	Point min(INT_MAX,INT_MAX);
-	unsigned int min_id = size;
-	for(unsigned int i=0; i<size; i++){
-		if(dots[i].x < min.x){
-			min = dots[i];
-			min_id = i;
-		} else if (dots[i].x == min.x && dots[i].y < min.y){
-			min = dots[i];
-			min_id = i;
-		}
-	}
-	return min_id;
-}
 
 unsigned int NodeMap::dist(const Point p1, const Point p2){
 	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
@@ -71,10 +57,11 @@ bool includes(const std::vector<unsigned int> &id, const unsigned int d){
 unsigned int NodeMap::findClose(const Point *dots, const std::vector<unsigned int> &id, const unsigned int *conn, const unsigned int size){
 	unsigned int close_id = id[0];
 	unsigned int min_dist = INT_MAX;
-	for(unsigned int j=0; j<id.size(); j++){
-		for(unsigned int i=0; i<size; i++){
-			if(!includes(id, i)){
-				unsigned int sdist = dist(dots[i], dots[id[j]]);
+	for(unsigned int i=0; i<size; i++){
+		if(!includes(id, i)){
+			unsigned int sdist = 0;
+			for(unsigned int j=0; j<id.size(); j++){
+				sdist += dist(dots[i], dots[id[j]]);
 				if(sdist < min_dist && conn[i] < 1){
 					min_dist = sdist;
 					close_id = i;
@@ -85,15 +72,34 @@ unsigned int NodeMap::findClose(const Point *dots, const std::vector<unsigned in
 	return close_id;
 }
 
+void NodeMap::removeFarest(const Point *dots, std::vector<unsigned int> &ids){
+	unsigned int sdist = 0;
+	unsigned int farest_id = 0;
+	unsigned int last = ids.size()-1;
+	for(unsigned int i=0; i<last; i++){
+		unsigned int cdist = dist(dots[ids[i]], dots[last]);
+		if(cdist > sdist){
+			sdist = cdist;
+			farest_id = i;
+		}
+	}
+	ids.erase(ids.begin()+farest_id);
+}
+
+void NodeMap::addNode(const Point *dots, const std::vector<unsigned int> &ids){
+	Node n;
+	for(unsigned int i=0; i<ids.size(); i++){
+		n.add(dots[ids[i]].x, dots[ids[i]].y);
+	}
+	nodes.push_back(n);
+}
+	
 void NodeMap::connect(const Point *dots, const unsigned int size){
 	unsigned int conn[size];
 	for(unsigned int i=0; i<size; i++) conn[i] = 0;
-	std::vector<Point> doubles;
 	unsigned int id = findMin(dots, size);
 	std::vector<unsigned int> ids;
 	ids.push_back(id);
-	Node n;
-	n.add(dots[id].x, dots[id].y);
 	conn[id]++;
 	std::cout << "start" << std::endl;
 	//not even close
@@ -104,15 +110,10 @@ void NodeMap::connect(const Point *dots, const unsigned int size){
 		}
 		std::cout << id << std::endl;
 		ids.push_back(id);
-		n.add(dots[id].x, dots[id].y);
 		conn[id]++;
-		if (ids.size() == 3){
-			nodes.push_back(n);
-			n.clear();
-			n.add(dots[id].x, dots[id].y);
-			conn[id]++;
-			doubles.push_back(dots[id]);
-			ids.erase(ids.begin(), ids.end()-1);
+		if (ids.size() == 4){
+			removeFarest(dots, ids);
+			addNode(dots, ids);
 		}
 	}
 }
@@ -121,7 +122,7 @@ NodeMap::NodeMap(sf::RenderWindow &window){
 	sf::VertexArray vect(sf::Points);
 	sf::Vertex v;
 	v.color = sf::Color::White;
-	unsigned int size = 10;
+	unsigned int size = 20;
 	Point dots[size];
 	for(unsigned int i=0; i<size; i++){
 		dots[i].x = rand()%window.getSize().x;

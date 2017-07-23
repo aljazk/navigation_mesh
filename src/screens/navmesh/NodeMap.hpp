@@ -27,6 +27,9 @@ class NodeMap{
 		unsigned int dist(const Point, const Point);
 		unsigned int findClose(const Point *, const unsigned int, const unsigned int*, const unsigned int);
 		unsigned int findClose(const Point *, const std::vector<unsigned int> &, const unsigned int*, const unsigned int);
+		float getAng(const Point, const Point, const Point);
+		void removeFarest(const Point *, std::vector<unsigned int> &);
+		void addNode(const Point *, const std::vector<unsigned int> &);
 		void connect(const Point *, const unsigned int);
 		void findNeighbors();
 		void getLeftRight(std::vector<unsigned int> &, std::vector<Point> &, std::vector<Point> &);
