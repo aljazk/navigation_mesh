@@ -27,6 +27,20 @@ NodeMap::NodeMap(){
 	findNeighbors();
 }
 
+unsigned int NodeMap::findMin(const Point *dots, const unsigned int size){
+	Point min(INT_MAX,INT_MAX);
+	unsigned int min_id = size;
+	for(unsigned int i=0; i<size; i++){
+		if(dots[i].x < min.x){
+			min = dots[i];
+			min_id = i;
+		} else if (dots[i].x == min.x && dots[i].y < min.y){
+			min = dots[i];
+			min_id = i;
+		}
+	}
+	return min_id;
+}
 
 unsigned int NodeMap::dist(const Point p1, const Point p2){
 	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));

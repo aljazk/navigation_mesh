@@ -16,6 +16,8 @@ class Edge{
 		void close();
 		bool checkSide(Vertex);
 		bool checkSide(int, int);
+		Vertex getPoint1() const;
+		Vertex getPoint2() const;
 };
 
 #endif

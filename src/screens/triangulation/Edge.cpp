@@ -25,3 +25,11 @@ bool Edge::checkSide(Vertex v){
 bool Edge::checkSide(int x, int y){
 	return ((point2.x - point1.x) * (y - point1.y) - (point2.y - point1.y) * (x - point1.x)) > 0;
 }
+
+Vertex Edge::getPoint1() const{
+	return point1;
+}
+
+Vertex Edge::getPoint2() const{
+	return point2;
+}
