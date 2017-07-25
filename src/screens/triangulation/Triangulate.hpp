@@ -11,6 +11,7 @@ class Triangulate{
 	public:
 		Triangulate();
 		static std::vector<Triangle> triangulate(const std::vector<Vertex> &);
+		static std::vector<Triangle> triangulate(std::vector<Vertex> &, sf::RenderWindow &);
 		static std::vector<Triangle> triangulate(const Vertex *);
 };
 

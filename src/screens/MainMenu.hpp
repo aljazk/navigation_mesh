@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include "navmesh/NodeMap.hpp"
+#include "triangulation/Triangulate.hpp"
 
 
 class MainMenu{

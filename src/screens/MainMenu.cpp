@@ -30,11 +30,21 @@ void MainMenu::createGUI(){
 	gui.emplace<Button>(mbutton);
 }
 
+std::vector<Vertex> genPoints(unsigned int count, unsigned int x, unsigned int y){
+	std::vector<Vertex> dots;
+	for(unsigned int i=0; i<count; i++){
+		dots.push_back(Vertex(rand() % x, rand() % y));
+	}
+	return dots;
+}
 
 void MainMenu::run(sf::RenderWindow &window){
 	std::string action = "";
 	// start loop
-	nm::NodeMap nm(window);
+	//nm::NodeMap nm(window);
+	std::vector<Vertex> points = genPoints(20, window.getSize().x, window.getSize().y);
+	Triangulate::triangulate(points, window);
+	
     while (window.isOpen()){
         // check all the window's events that were triggered since the last iteration of the loop
         sf::Event event;

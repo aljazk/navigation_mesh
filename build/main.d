@@ -76,4 +76,7 @@ build/main.o: src/main.cpp src/screens/MainMenu.hpp \
  src/screens/../gui/objects/Input.hpp \
  src/screens/../gui/objects/TexturedButton.hpp \
  src/screens/navmesh/NodeMap.hpp src/screens/navmesh/Node.hpp \
- src/screens/navmesh/Astar.hpp src/screens/navmesh/Path.hpp
+ src/screens/navmesh/Astar.hpp src/screens/navmesh/Path.hpp \
+ src/screens/triangulation/Triangulate.hpp \
+ src/screens/triangulation/Triangle.hpp \
+ src/screens/triangulation/Edge.hpp src/screens/triangulation/Vertex.hpp

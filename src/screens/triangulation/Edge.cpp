@@ -4,8 +4,7 @@ Edge::Edge(){
 	open = true;
 }
 
-Edge::Edge(Vertex p1, Vertex p2){
-	Edge();
+Edge::Edge(Vertex p1, Vertex p2) : Edge(){
 	point1 = p1;
 	point2 = p2;
 }
